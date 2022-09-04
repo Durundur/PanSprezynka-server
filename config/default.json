@@ -1,0 +1,7 @@
+{
+    "clientId": "ulq43iijrthp2dvje4lp0w5ir0z2qc",
+    "clientSecret" : "cd084boj883swp5drrxe9acisvcnop",
+    "dblogin": "admin",
+    "dbPass": "z9l7EfY2hoUCBV0C",
+    "dbURI": "mongodb+srv://admin:z9l7EfY2hoUCBV0C@pansprezynka.dsizhqu.mongodb.net/?retryWrites=true&w=majority"
+}
