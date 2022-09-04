@@ -22,5 +22,7 @@ app.use('/streams', async function(req,res){
         console.log(error)
     }
 })
-
+app.use('/tes', (req,res)=>{
+    res.send('test')
+})
 
