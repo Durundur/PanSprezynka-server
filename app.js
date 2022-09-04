@@ -13,6 +13,10 @@ connectDb()
 app.listen(PORT,()=>{
     console.log('server listeninng on port', PORT);
 })
+
+
+
+
 app.use('/streams', async function(req,res){
     try{
         const data = StatsModel.find()
@@ -22,7 +26,8 @@ app.use('/streams', async function(req,res){
         console.log(error)
     }
 })
-app.use('/tes', (req,res)=>{
-    res.send('test')
+app.use('/status', (req,res)=>{
+    console.log('status checked')
+    res.send('running')
 })
 
