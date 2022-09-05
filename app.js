@@ -1,14 +1,38 @@
 const express = require('express')
 const mongoose = require('mongoose')
-const StatsModel = require('./Schemas/StreamStats')
+const StatsModel = require('./Schemas/StreamStatsModel')
 const connectDb = require('./db')
 const cors = require('cors');
 const app = express()
 const PORT = process.env.PORT || 7000
 const cron = require('node-cron');
-const getStreamStat = require('./streamsData')
+const streamsData = require('./streamsData')
 
 app.use(cors({ origin: true }));
+
+
+const streamerList = ['bonkol', 'kalach444', 'inet_saju','spiralusgtm', 'kasix']
+
+async function monitoreStreams(){
+    cron.schedule('*/2 * * * *',async function(){
+        for(let streamer of streamerList){
+            let vieversData = await streamsData.getVievers(streamer)
+            if(vieversData!=='stream is offline'){
+                let chattersData = await streamsData.getChatters(streamer)
+                let streamFromDB = await StatsModel.findById(vieversData.id)
+                if(streamFromDB==null){
+                    StatsModel.create({'_id': vieversData.id, 'channelName': vieversData.channelName,'stats': [{'currentViewers': vieversData.currentViewers, ...chattersData}]})
+                }
+                else{
+                    streamFromDB.stats.push({'currentViewers': vieversData.currentViewers, ...chattersData})
+                    await streamFromDB.save()
+                }
+            }
+        }
+        console.log('running...')
+    })
+}
+
 
 
 connectDb()
@@ -16,19 +40,13 @@ app.listen(PORT,()=>{
     console.log('server listeninng on port', PORT);
 })
 
-const streamerList = ['bonkol']
+monitoreStreams()
 
-cron.schedule('*/120 * * * * *',()=>{
-    // for(let streamer of streamerList){
-    //     getStreamStat(streamer)
-    // }
-    console.log('running...')
-})
 
 
 app.use('/streams', async function(req,res){
     try{
-        const data = StatsModel.find()
+        const data = await StatsModel.find()
         res.send(data)
     }
     catch(error){

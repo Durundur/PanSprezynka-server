@@ -35,7 +35,13 @@ async function getVievers(userLogin){
     try{
         const res = await fetch('https://api.twitch.tv/helix/streams?'+query, {method: 'GET', headers:{'Authorization':  'Bearer ' + OAuth.access_token, 'Client-Id': clientId}})
         const json = await res.json()
-        return {'currentViewers': json.data[0].viewer_count}
+        if(json.data.length==0){
+            return 'stream is offline'
+        } 
+        else{
+            return {'currentViewers': json.data[0].viewer_count, 'id': json.data[0].id, 'channelName': json.data[0].user_login}
+        }
+        
     }
     catch(error){
         console.log(error)
@@ -46,23 +52,13 @@ async function getChatters(userLogin){
     try{
         const res = await fetch('https://tmi.twitch.tv/group/user/'+userLogin+'/chatters', {method: 'GET'})
         const json = await res.json()
-        return {'currentChatters': json.chatter_count, 'time': new Date()}
+        let date = new Date().toLocaleString('en-GB', {timeZone: 'Europe/Warsaw'})
+        return {'currentChatters': json.chatter_count, 'time':date}
     }
     catch(error){
         console.log(error)
     }
 }
-
-
-// async function getStreamStat(channelName){
-//     const vievers = await getVievers(channelName)
-//     const streamStats = await getChatters(channelName)
-//     return {...vievers, ...streamStats}
-// }
-
-// getStreamStat('kalach444').then(res=>{
-//     res=res
-// })
 
 async function getStreamStats(channelName){
     const vievers = await getVievers(channelName)
@@ -70,12 +66,9 @@ async function getStreamStats(channelName){
     let stats = {...vievers, ...chatters}
     return stats
 }
-    
-const tes = getStreamStats('kalach444')
-console.log(tes)
 
-// module.exports = getStreamStat()
 
+module.exports = {getOAuth, getChatters, getVievers, getStreamStats}
 
 
 
