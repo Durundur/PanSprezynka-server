@@ -68,7 +68,7 @@ async function getStreamStats(channelName){
     const vievers = await getVievers(channelName)
     const chatters = await getChatters(channelName)
     let stats = {...vievers, ...chatters}
-    return stats.resolve()
+    return stats
 }
     
 const tes = getStreamStats('kalach444')
