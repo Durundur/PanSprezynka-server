@@ -11,7 +11,7 @@ const streamsData = require('./streamsData')
 app.use(cors({ origin: true }));
 
 
-const streamerList = ['bonkol', 'kalach444', 'inet_saju','spiralusgtm', 'kasix']
+const streamerList = ['bonkol', 'kalach444', 'inet_saju','spiralusgtm', 'kasix','ewroon']
 
 async function monitoreStreams(){
     cron.schedule('*/2 * * * *',async function(){
