@@ -5,6 +5,8 @@ const connectDb = require('./db')
 const cors = require('cors');
 const app = express()
 const PORT = process.env.PORT || 7000
+const cron = require('node-cron');
+const getStreamStat = require('./streamsData')
 
 app.use(cors({ origin: true }));
 
@@ -14,7 +16,14 @@ app.listen(PORT,()=>{
     console.log('server listeninng on port', PORT);
 })
 
+const streamerList = ['bonkol']
 
+cron.schedule('*/120 * * * * *',()=>{
+    // for(let streamer of streamerList){
+    //     getStreamStat(streamer)
+    // }
+    console.log('running...')
+})
 
 
 app.use('/streams', async function(req,res){

@@ -4,7 +4,11 @@ const config = require('config');
 const clientId = config.get('clientId')
 const clientSecret = config.get('clientSecret')
 
-let OAuth 
+let OAuth = {
+    access_token: 'njnjxl6iglisedjwsv104ho3epaf9p',
+    expires_in: 5075490,
+    token_type: 'bearer'
+}
 
 async function getOAuth(){
     try{
@@ -38,11 +42,11 @@ async function getVievers(userLogin){
     }
 }
 
-async function getChatters(userLogin, channelData){
+async function getChatters(userLogin){
     try{
         const res = await fetch('https://tmi.twitch.tv/group/user/'+userLogin+'/chatters', {method: 'GET'})
         const json = await res.json()
-        return {...channelData, 'currentChatters': json.chatter_count, 'time': new Date()}
+        return {'currentChatters': json.chatter_count, 'time': new Date()}
     }
     catch(error){
         console.log(error)
@@ -50,13 +54,27 @@ async function getChatters(userLogin, channelData){
 }
 
 
-async function getStreamStat(channelName){
-    await getOAuth()
-    console.log(OAuth)
-    console.log(await getChatters(channelName, await getVievers(channelName)))
+// async function getStreamStat(channelName){
+//     const vievers = await getVievers(channelName)
+//     const streamStats = await getChatters(channelName)
+//     return {...vievers, ...streamStats}
+// }
+
+// getStreamStat('kalach444').then(res=>{
+//     res=res
+// })
+
+async function getStreamStats(channelName){
+    const vievers = await getVievers(channelName)
+    const chatters = await getChatters(channelName)
+    let stats = {...vievers, ...chatters}
+    return stats.resolve()
 }
+    
+const tes = getStreamStats('kalach444')
+console.log(tes)
 
-
+// module.exports = getStreamStat()
 
 
 
