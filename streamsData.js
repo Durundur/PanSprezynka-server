@@ -31,11 +31,11 @@ async function getVievers(userLogin){
     try{
         const res = await fetch('https://api.twitch.tv/helix/streams?'+query, {method: 'GET', headers:{'Authorization':  'Bearer ' + OAuth.access_token, 'Client-Id': clientId}})
         const json = await res.json()
-        if(json.data.length==0){
-            return 'stream is offline'
+        if(Array.isArray(json.data) && json.data.length){
+            return {'currentViewers': json.data[0].viewer_count, 'id': json.data[0].id, 'channelName': json.data[0].user_login}
         } 
         else{
-            return {'currentViewers': json.data[0].viewer_count, 'id': json.data[0].id, 'channelName': json.data[0].user_login}
+            return 'stream is offline'
         }
         
     }
