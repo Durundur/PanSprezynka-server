@@ -4,11 +4,7 @@ const config = require('config');
 const clientId = config.get('clientId')
 const clientSecret = config.get('clientSecret')
 
-let OAuth = {
-    access_token: 'njnjxl6iglisedjwsv104ho3epaf9p',
-    expires_in: 5075490,
-    token_type: 'bearer'
-}
+let OAuth = {}
 
 async function getOAuth(){
     try{
@@ -60,15 +56,9 @@ async function getChatters(userLogin){
     }
 }
 
-async function getStreamStats(channelName){
-    const vievers = await getVievers(channelName)
-    const chatters = await getChatters(channelName)
-    let stats = {...vievers, ...chatters}
-    return stats
-}
 
 
-module.exports = {getOAuth, getChatters, getVievers, getStreamStats}
+module.exports = {getOAuth, getChatters, getVievers}
 
 
 
