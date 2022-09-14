@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 const StreamStats = new mongoose.Schema({
     channelName: String,
     _id: String,
+    channelImg: String,
     stats: [{
         currentViewers: Number,
         currentChatters: Number,
