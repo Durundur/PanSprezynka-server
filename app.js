@@ -28,10 +28,10 @@ async function monitoreStreams(streamerList) {
                 const chattersData = await streamsData.getChatters(onlineStream.user_login)
                 if (streamFromDB == null) {
                     const userImg = await streamsData.getUserImg(onlineStream.user_name)
-                    StatsModel.create({ '_id': onlineStream.id, 'channelImg': userImg, 'channelName': onlineStream.user_login, 'stats': [{ 'currentViewers': onlineStream.viever_count, ...chattersData }] })
+                    StatsModel.create({ '_id': onlineStream.id, 'channelImg': userImg, 'channelName': onlineStream.user_login, 'stats': [{ 'currentViewers': onlineStream.viewer_count, ...chattersData }] })
                 }
                 else {
-                    streamFromDB.stats.push({ 'currentViewers': onlineStream.viever_count, ...chattersData })
+                    streamFromDB.stats.push({ 'currentViewers': onlineStream.viewer_count, ...chattersData })
                     await streamFromDB.save()
                 }
             }
