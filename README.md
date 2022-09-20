@@ -21,5 +21,4 @@ Working on channels:
 - losiugra
 - nexos
 - niklaus
-- rockalone
 - mamm0n
