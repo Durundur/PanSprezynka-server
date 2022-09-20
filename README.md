@@ -19,4 +19,7 @@ Working on channels:
 - stazjaa
 - izakooo
 - losiugra
-
+- nexos
+- niklaus
+- rockalone
+- mamm0n

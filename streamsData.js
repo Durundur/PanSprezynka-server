@@ -48,7 +48,7 @@ async function getChatters(userLogin) {
     try {
         const res = await fetch('https://tmi.twitch.tv/group/user/' + userLogin + '/chatters', { method: 'GET' })
         const json = await res.json()
-        let date = new Date().toLocaleString('en-GB', { timeZone: 'Europe/Warsaw' })
+        let date = new Date().toISOString()
         return { 'currentChatters': json.chatter_count, 'time': date }
     }
     catch (error) {
