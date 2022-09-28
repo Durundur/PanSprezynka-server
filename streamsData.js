@@ -34,6 +34,7 @@ async function getVievers(streamerList) {
     for (streamerName of streamerList) {
         query = 'user_login=' + streamerName + '&' + query
     }
+    
     try {
         const res = await fetch('https://api.twitch.tv/helix/streams?' + query, { method: 'GET', headers: { 'Authorization': 'Bearer ' + OAuth.access_token, 'Client-Id': clientId } })
         const json = await res.json()
