@@ -33,10 +33,10 @@ async function monitoreStreams(streamerList) {
                     const chattersData = await streamsData.getChatters(onlineStream.user_login)
                     if (streamFromDB == null) {
                         const userImg = await streamsData.getUserImg(onlineStream.user_name)
-                        StatsModel.create({ '_id': onlineStream.id, 'channelImg': userImg, 'channelName': onlineStream.user_login, 'stats': [{ 'currentViewers': onlineStream.viewer_count, ...chattersData }] })
+                        StatsModel.create({'userId': onlineStream.user_id, '_id': onlineStream.id, 'channelImg': userImg, 'channelName': onlineStream.user_login, 'stats': [{'gameName': onlineStream.game_name, 'currentViewers': onlineStream.viewer_count, ...chattersData }] })
                     }
                     else {
-                        streamFromDB.stats.push({ 'currentViewers': onlineStream.viewer_count, ...chattersData })
+                        streamFromDB.stats.push({'currentViewers': onlineStream.viewer_count, ...chattersData })
                         await streamFromDB.save()
                     }
                 }
@@ -87,7 +87,7 @@ app.use('/streams/user/:streamerName', async function (req, res) {
 
 app.use('/streams', async function (req, res) {
     try {
-        const data = await StatsModel.find().sort({ createdAt: -1 }).limit(5)
+        const data = await StatsModel.find().sort({ updatedAt: -1 }).limit(5)
         res.send(data)
     }
     catch (error) {
