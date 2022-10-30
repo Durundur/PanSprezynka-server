@@ -35,7 +35,7 @@ async function monitoreStreams(streamerList) {
                     const chattersData = await streamsData.getChatters(onlineStream.user_login)
                     if (streamFromDB == null) {
                         const userImg = await streamsData.getUserImg(onlineStream.user_name)
-                        StatsModel.create({ 'userId': onlineStream.user_id, '_id': onlineStream.id, 'channelImg': userImg, 'channelName': onlineStream.user_login, 'stats': [{ 'gameName': onlineStream.game_name, 'currentViewers': onlineStream.viewer_count, ...chattersData }] })
+                        StatsModel.create({ 'userId': onlineStream.user_id, '_id': onlineStream.id, 'channelImg': userImg, 'channelName': onlineStream.user_login, 'stats': [{ 'currentViewers': onlineStream.viewer_count, ...chattersData }] })
                     }
                     else {
                         streamFromDB.stats.push({ 'currentViewers': onlineStream.viewer_count, ...chattersData })
@@ -50,32 +50,67 @@ async function monitoreStreams(streamerList) {
         }
     })
 }
-const scrapEvents = async (data, browser)=>{
-    const page = await browser.newPage();
-    await page.goto(`https://streamscharts.com/channels/${data.channelName}/streams/${data._id}`);
-    let events = await page.$$eval('tbody tr.text-xs', elements => elements.map(
-        element => ({
-            time: new Date(element.querySelector('span').getAttribute('data-tippy-content')).toISOString(),
-            event: element.querySelector('div.truncate').textContent,
-            eventInfo: element.querySelector('div.truncate').nextElementSibling ? element.querySelector('span[x-ref="text"]').textContent : ''
-        })
-    ));
-    if(events.length>0){
-        console.log('success')
-        data['events'] = events
-        await data.save()
-        await browser.close();
-        return Promise.resolve()
-    }
-    else{
-        console.log('failure, setting timeout')
-        // setTimeout(()=>{
-        //     console.log('timeout has ended, retiring')
-        // }, 60000)
-        await scrapEvents(data, browser)
-    }
+
+
+function filterEvents(events) {
+    return events.filter((eventObject) => {
+        let { event, eventInfo } = eventObject
+        if (event != "Renamed stream status to") {
+            if (parseInt(eventInfo.split(' ')[0]) < 10 && eventInfo.split(' ')[1] == 'viewers') return
+            return eventObject
+        }
+
+    })
 }
 
+const checkIfAllEvents = (eventsArray) => {
+    for (let event of eventsArray) {
+        if (event.event === 'Stream finished') return true
+    }
+    return false
+}
+
+const updateEvents = (async (streamerList) => {
+    cron.schedule('*/30 * * * *', async function () {
+        const browser = await playwright.chromium.launch();
+        const page = await browser.newPage();
+        for (let channelName of streamerList) {
+            let channelStreams = await StatsModel.find({ channelName: channelName })
+            for (let streamData of channelStreams) {
+                let { events, channelName, _id, isAllEvents } = streamData
+                if (events.length == 0) {
+                    console.log('start scraping', channelName, _id)
+                    await page.goto(`https://streamscharts.com/channels/${channelName}/streams/${_id}`);
+                    let streamEvents
+                    if (await page.title() == 'Page not Found (404)') {
+                        continue;
+                    }
+                    try {
+                        const elementHandle = await page.waitForSelector('tbody', { timeout: 30000 })
+                        streamEvents = await elementHandle.$$eval('tr.text-xs', elements => elements.map(
+                            element => ({
+                                time: new Date(element.querySelector('span').getAttribute('data-tippy-content')).toISOString(),
+                                event: element.querySelector('div.truncate').textContent,
+                                eventInfo: element.querySelector('div.truncate').nextElementSibling ? element.querySelector('span[x-ref="text"]').textContent : ''
+                            })
+                        ))
+                    } catch (e) {
+                        if (e instanceof playwright.errors.TimeoutError) {
+                            console.log('recaptcha')
+                            continue
+                        }
+                    }
+                    if (streamEvents.length > 0) {
+                        console.log('success')
+                        streamData['events'] = filterEvents(streamEvents)
+                        streamData['isAllEvents'] = checkIfAllEvents(streamEvents)
+                        await streamData.save()
+                    }
+                }
+            }
+        }
+    }
+)})
 
 
 
@@ -84,60 +119,18 @@ function updateStreamerList() {
     console.log('streamer list has been updated');
 }
 function sleep(s) {
-    return new Promise(resolve => setTimeout(resolve, s*1000));
-  }
+    return new Promise(resolve => setTimeout(resolve, s * 1000));
+}
 
 const main = (async () => {
     await streamsData.getOAuth()
     await monitoreStreams(streamerList)
+    await updateEvents(streamerList)
 })
 
 
 
-const updateEvents = (async () => {
-    for (let channelName of streamerList) {
-        let dataa = await StatsModel.find({ channelName: channelName })
-        for (const data of dataa) {
-            if (data.events.length == 0){
-                console.log('start scraping', data.channelName, data._id)
-                const browser = await playwright.chromium.launch();
-                const page = await browser.newPage();
-                await page.goto(`https://streamscharts.com/channels/${data.channelName}/streams/${data._id}`);
-                let events
-                if(await page.title() == 'Page not Found (404)'){
-                    continue;
-                }
-                try{
-                    const elementHandle = await page.waitForSelector('tbody', {timeout: 40000})
-                    events = await elementHandle.$$eval('tr.text-xs', elements => elements.map(
-                        element => ({
-                            time: new Date(element.querySelector('span').getAttribute('data-tippy-content')).toISOString(),
-                            event: element.querySelector('div.truncate').textContent,
-                            eventInfo: element.querySelector('div.truncate').nextElementSibling ? element.querySelector('span[x-ref="text"]').textContent : ''
-                        })
-                    ))
-                }catch(e){
-                    if (e instanceof playwright.errors.TimeoutError){
-                        await page.screenshot({ path: 'screenshot44.png' });
-                    }
-                }
-                if(events.length>0){
-                    console.log('success')
-                    data['events'] = events
-                    await data.save()
-                    await browser.close();
-                }
-                else{
-                    console.log('failure, setting timeout')
-                    await sleep(60)
-                    console.log('trying again')
-                    await page.screenshot({ path: 'screenshot2.png' });
-                    await scrapEvents(data, browser)
-                }
-            }
-        }
-    }
-})
+
 
 connectDb(() => {
     app.listen(PORT, () => {
@@ -147,8 +140,7 @@ connectDb(() => {
 
 
 updateStreamerList()
-// main()
-updateEvents()
+main()
 
 
 

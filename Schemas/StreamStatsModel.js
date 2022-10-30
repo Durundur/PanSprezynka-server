@@ -10,7 +10,6 @@ const StreamStats = new mongoose.Schema({
         currentViewers: Number,
         currentChatters: Number,
         time: String,
-        gameName: String,
         _id: false
     }],
     events: [{
@@ -18,7 +17,8 @@ const StreamStats = new mongoose.Schema({
         event: String,
         eventInfo: String,
         _id: false
-    }]
+    }],
+    isAllEvents: Boolean
 },{ timestamps: true })
 
 module.exports = streamsStatsModel = mongoose.model('streamsStatsModel', StreamStats)
